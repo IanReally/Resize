@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
         return 5;
     }
     //save original height, width, and padding values for later calculations
-    long originalBiWidth = bi.biWidth;
-    long originalBiHeight = abs(bi.biHeight);
+    int originalBiWidth = bi.biWidth;
+    int originalBiHeight = bi.biHeight;
     //establish original padding needed based on formula given in walkthrough
     int originalPadding = (4 - (originalBiWidth * sizeof(RGBTRIPLE)) % 4) % 4;
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     //establish new padding needed based on formula given in walkthrough
     int newPadding = (4 - (bi.biWidth * sizeof(RGBTRIPLE)) % 4) % 4;
     //calculate new image size and file size to be written in new HEADERS
-    bi.biSizeImage = ((sizeof(RGBTRIPLE) * bi.biWidth) + newPadding) * abs(bi.biHeight);
+    bi.biSizeImage = ((sizeof(RGBTRIPLE) * abs(bi.biWidth)) + newPadding) * abs(bi.biHeight);
     bf.bfSize = bi.biSizeImage + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 
 
@@ -80,10 +80,10 @@ int main(int argc, char *argv[])
     fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, outptr);
 
     // write outfile's BITMAPINFOHEADER
-    fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, outptr); 
+    fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, outptr);
 
     // iterate over each of infile's scanlines (rows)
-    for (int i = 0, Height = (originalBiHeight); i < Height; i++)
+    for (int i = 0, Height = abs(originalBiHeight); i < Height; i++)
     {
         //initiate loop to write rows of pixels and padding (multiplier - 1) times
         for (int looprow = 0; looprow < (multiplier - 1); looprow ++)
@@ -106,14 +106,14 @@ int main(int argc, char *argv[])
             }
             //write padding
             for (int m = 0; m < newPadding; m++)
-                {
-                    fputc(0x00, outptr);
-                }
+            {
+                fputc(0x00, outptr);
+            }
 
             fseek(inptr, -(originalBiWidth * sizeof(RGBTRIPLE)), SEEK_CUR);
         }
 
-        //repeat for final line (to reach multiplier times)
+        //repeat for final line (to reach "multiplier" times)
         //iterate over pixels in scanline (row) for last time
         for (int pixelcount = 0; pixelcount < originalBiWidth; pixelcount++)
         {
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
             fread(&triple, sizeof(RGBTRIPLE), 1, inptr);
 
             // write RGB triple for multiplier times
-            for (int k = 0; k < multiplier; k++)
+            for (int p = 0; p < multiplier; p++)
             {
                 fwrite(&triple, sizeof(RGBTRIPLE), 1, outptr);
             }
